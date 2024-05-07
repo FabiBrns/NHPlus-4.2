@@ -1,19 +1,24 @@
 package de.hitec.nhplus.controller;
 
+import de.hitec.nhplus.datastorage.CaretakerDao;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.TreatmentDao;
-import javafx.beans.value.ChangeListener;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.stage.Stage;
+import de.hitec.nhplus.model.Caretaker;
 import de.hitec.nhplus.model.Patient;
 import de.hitec.nhplus.model.Treatment;
 import de.hitec.nhplus.utils.DateConverter;
+import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 
 public class NewTreatmentController {
 
@@ -22,6 +27,9 @@ public class NewTreatmentController {
 
     @FXML
     private Label labelSurname;
+
+    @FXML
+    private ComboBox<String> comboBoxCaretakerSelection;
 
     @FXML
     private TextField textFieldBegin;
@@ -41,18 +49,24 @@ public class NewTreatmentController {
     @FXML
     private Button buttonAdd;
 
+    private final ObservableList<String> caretakerSelection = FXCollections.observableArrayList();
     private AllTreatmentController controller;
     private Patient patient;
+    private Caretaker caretaker;
     private Stage stage;
+    private ArrayList<Caretaker> caretakerList;
 
     public void initialize(AllTreatmentController controller, Stage stage, Patient patient) {
-        this.controller= controller;
+        comboBoxCaretakerSelection.setItems(caretakerSelection);
+        comboBoxCaretakerSelection.getSelectionModel().select(0);
+
+        this.controller = controller;
         this.patient = patient;
         this.stage = stage;
+        this.caretaker = null;
 
         this.buttonAdd.setDisable(true);
-        ChangeListener<String> inputNewPatientListener = (observableValue, oldText, newText) ->
-                NewTreatmentController.this.buttonAdd.setDisable(NewTreatmentController.this.areInputDataInvalid());
+        ChangeListener<String> inputNewPatientListener = (observableValue, oldText, newText) -> NewTreatmentController.this.buttonAdd.setDisable(NewTreatmentController.this.areInputDataInvalid());
         this.textFieldBegin.textProperty().addListener(inputNewPatientListener);
         this.textFieldEnd.textProperty().addListener(inputNewPatientListener);
         this.textFieldDescription.textProperty().addListener(inputNewPatientListener);
@@ -70,21 +84,45 @@ public class NewTreatmentController {
             }
         });
         this.showPatientData();
+        this.createComboBoxData();
     }
 
-    private void showPatientData(){
+    private void showPatientData() {
         this.labelFirstName.setText(patient.getFirstName());
         this.labelSurname.setText(patient.getSurname());
     }
 
+    private Caretaker searchInCaretakerList(String surname) {
+        for (Caretaker caretaker : this.caretakerList) {
+            if (caretaker.getSurname().equals(surname)) {
+                return caretaker;
+            }
+        }
+        return null;
+    }
+
     @FXML
-    public void handleAdd(){
+    public void handleCaretakerComboBox() {
+        try {
+            String selectedPatient = this.comboBoxCaretakerSelection.getSelectionModel().getSelectedItem();
+            this.caretaker = searchInCaretakerList(selectedPatient);
+        } catch (NullPointerException exception) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Information");
+            alert.setHeaderText("Patient für die Behandlung fehlt!");
+            alert.setContentText("Wählen Sie über die Combobox einen Patienten aus!");
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    public void handleAdd() {
         LocalDate date = this.datePicker.getValue();
         LocalTime begin = DateConverter.convertStringToLocalTime(textFieldBegin.getText());
         LocalTime end = DateConverter.convertStringToLocalTime(textFieldEnd.getText());
         String description = textFieldDescription.getText();
         String remarks = textAreaRemarks.getText();
-        Treatment treatment = new Treatment(patient.getPid(), date, begin, end, description, remarks);
+        Treatment treatment = new Treatment(patient.getPid(), caretaker.getCid(), date, begin, end, description, remarks);
         createTreatment(treatment);
         controller.readAllAndShowInTableView();
         stage.close();
@@ -99,8 +137,21 @@ public class NewTreatmentController {
         }
     }
 
+    private void createComboBoxData() {
+        CaretakerDao dao = DaoFactory.getDaoFactory().createCaretakerDAO();
+        try {
+            caretakerList = (ArrayList<Caretaker>) dao.readAll();
+            this.caretakerSelection.add("alle");
+            for (Caretaker caretaker : caretakerList) {
+                this.caretakerSelection.add(caretaker.getSurname());
+            }
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+    }
+
     @FXML
-    public void handleCancel(){
+    public void handleCancel() {
         stage.close();
     }
 

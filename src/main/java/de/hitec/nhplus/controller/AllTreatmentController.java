@@ -4,6 +4,8 @@ import de.hitec.nhplus.Main;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
 import de.hitec.nhplus.datastorage.TreatmentDao;
+import de.hitec.nhplus.model.Patient;
+import de.hitec.nhplus.model.Treatment;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -13,8 +15,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
-import de.hitec.nhplus.model.Patient;
-import de.hitec.nhplus.model.Treatment;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -30,6 +30,9 @@ public class AllTreatmentController {
 
     @FXML
     private TableColumn<Treatment, Integer> columnPid;
+
+    @FXML
+    private TableColumn<Treatment, Integer> columnCid;
 
     @FXML
     private TableColumn<Treatment, String> columnDate;
@@ -61,6 +64,7 @@ public class AllTreatmentController {
 
         this.columnId.setCellValueFactory(new PropertyValueFactory<>("tid"));
         this.columnPid.setCellValueFactory(new PropertyValueFactory<>("pid"));
+        this.columnCid.setCellValueFactory(new PropertyValueFactory<>("cid"));
         this.columnDate.setCellValueFactory(new PropertyValueFactory<>("date"));
         this.columnBegin.setCellValueFactory(new PropertyValueFactory<>("begin"));
         this.columnEnd.setCellValueFactory(new PropertyValueFactory<>("end"));
@@ -92,14 +96,13 @@ public class AllTreatmentController {
         try {
             patientList = (ArrayList<Patient>) dao.readAll();
             this.patientSelection.add("alle");
-            for (Patient patient: patientList) {
+            for (Patient patient : patientList) {
                 this.patientSelection.add(patient.getSurname());
             }
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
     }
-
 
     @FXML
     public void handleComboBox() {
@@ -115,8 +118,8 @@ public class AllTreatmentController {
             }
         }
 
-        Patient patient = searchInList(selectedPatient);
-        if (patient !=null) {
+        Patient patient = searchInPatientList(selectedPatient);
+        if (patient != null) {
             try {
                 this.treatments.addAll(this.dao.readTreatmentsByPid(patient.getPid()));
             } catch (SQLException exception) {
@@ -125,7 +128,7 @@ public class AllTreatmentController {
         }
     }
 
-    private Patient searchInList(String surname) {
+    private Patient searchInPatientList(String surname) {
         for (Patient patient : this.patientList) {
             if (patient.getSurname().equals(surname)) {
                 return patient;
@@ -148,11 +151,11 @@ public class AllTreatmentController {
 
     @FXML
     public void handleNewTreatment() {
-        try{
+        try {
             String selectedPatient = this.comboBoxPatientSelection.getSelectionModel().getSelectedItem();
-            Patient patient = searchInList(selectedPatient);
+            Patient patient = searchInPatientList(selectedPatient);
             newTreatmentWindow(patient);
-        } catch (NullPointerException exception){
+        } catch (NullPointerException exception) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Information");
             alert.setHeaderText("Patient für die Behandlung fehlt!");
@@ -192,7 +195,7 @@ public class AllTreatmentController {
         }
     }
 
-    public void treatmentWindow(Treatment treatment){
+    public void treatmentWindow(Treatment treatment) {
         try {
             FXMLLoader loader = new FXMLLoader(Main.class.getResource("/de/hitec/nhplus/TreatmentView.fxml"));
             AnchorPane pane = loader.load();
