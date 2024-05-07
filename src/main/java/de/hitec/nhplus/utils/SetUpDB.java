@@ -32,7 +32,7 @@ public class SetUpDB {
         SetUpDB.setUpTableLogData(connection);
         SetUpDB.setUpPatients();
         SetUpDB.setUpTreatments();
-        SetUpDB.setUpLogData();;
+        SetUpDB.setUpLogData();
     }
 
     /**
@@ -40,9 +40,9 @@ public class SetUpDB {
      */
     public static void wipeDb(Connection connection) {
         try (Statement statement = connection.createStatement()) {
-            statement.execute("DROP TABLE patient");
-            statement.execute("DROP TABLE treatment");
-            statement.execute("DROP TABLE Log");//???
+            statement.execute("DROP TABLE if exist patient");
+            statement.execute("DROP TABLE if exist treatment");
+            statement.execute("DROP TABLE if exist Log");//???
         } catch (SQLException exception) {
             System.out.println(exception.getMessage());
         }
@@ -55,7 +55,7 @@ public class SetUpDB {
                 "   surname TEXT NOT NULL, " +
                 "   dateOfBirth TEXT NOT NULL, " +
                 "   carelevel TEXT NOT NULL, " +
-                "   roomnumber TEXT NOT NULL, " +
+                "   roomnumber TEXT NOT NULL" +
                 ");";
         try (Statement statement = connection.createStatement()) {
             statement.execute(SQL);
