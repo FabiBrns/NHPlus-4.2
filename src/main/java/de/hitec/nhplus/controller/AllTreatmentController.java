@@ -17,8 +17,10 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.Array;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class AllTreatmentController {
 
@@ -147,6 +149,21 @@ public class AllTreatmentController {
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
+    }
+
+    public List<Treatment> GetTretmentsByPid(long selectedPatient)
+    {
+        List<Treatment> tretments_list = new ArrayList();
+
+
+        this.dao = DaoFactory.getDaoFactory().createTreatmentDao();
+            try {
+                tretments_list = this.dao.readTreatmentsByPid(selectedPatient);
+            } catch (SQLException exception) {
+                exception.printStackTrace();
+            }
+
+            return tretments_list;
     }
 
     @FXML

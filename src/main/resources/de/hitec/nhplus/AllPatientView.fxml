@@ -59,7 +59,7 @@
                         <Insets/>
                     </HBox.margin>
                 </GridPane>
-                <HBox alignment="TOP_CENTER" prefWidth="190.0" spacing="10.0">
+                <HBox alignment="TOP_LEFT" prefWidth="190.0" spacing="10.0">
                     <children>
                         <Button fx:id="buttonAdd" mnemonicParsing="false" onAction="#handleAdd" prefWidth="90.0"
                                 text="Hinzufügen"/>
@@ -78,6 +78,19 @@
                         <Font size="36.0"/>
                     </font>
                 </Label>
+            </children>
+        </HBox>
+        <HBox layoutX="10.0" layoutY="10.0" spacing="10.0" AnchorPane.topAnchor="5.0"
+              AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0">
+            <children>
+                <HBox prefWidth="280.0" spacing="10.0">
+                    <children>
+                        <Button fx:id="Export_PDF" mnemonicParsing="false" onAction="#handleExportPDF" prefWidth="90.0"
+                                text="Export PDF"/>
+                        <Button fx:id="Export_CSV" mnemonicParsing="false" onAction="#handleExportCSV" prefWidth="90.0"
+                                text="Export CSV"/>
+                    </children>
+                </HBox>
             </children>
         </HBox>
     </children>

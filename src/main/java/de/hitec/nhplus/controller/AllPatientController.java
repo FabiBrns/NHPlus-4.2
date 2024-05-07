@@ -18,12 +18,14 @@ import de.hitec.nhplus.utils.DateConverter;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
  * The <code>AllPatientController</code> contains the entire logic of the patient view. It determines which data is displayed and how to react to events.
  */
-public class AllPatientController {
+public class AllPatientController extends AllTreatmentController{
 
     @FXML
     private TableView<Patient> tableView;
@@ -76,7 +78,7 @@ public class AllPatientController {
      * configured.
      */
     public void initialize() {
-        this.readAllAndShowInTableView();
+        this.readAllPatientAndShowInTableView();
 
         this.columnId.setCellValueFactory(new PropertyValueFactory<>("pid"));
 
@@ -190,7 +192,7 @@ public class AllPatientController {
      * Reloads all patients to the table by clearing the list of all patients and filling it again by all persisted
      * patients, delivered by {@link PatientDao}.
      */
-    private void readAllAndShowInTableView() {
+    private void readAllPatientAndShowInTableView() {
         this.patients.clear();
         this.dao = DaoFactory.getDaoFactory().createPatientDAO();
         try {
@@ -236,9 +238,52 @@ public class AllPatientController {
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
-        readAllAndShowInTableView();
+        readAllPatientAndShowInTableView();
         clearTextfields();
     }
+
+    public List GetExportData()
+    {
+        long selectedPatient = 0;
+        Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+            try {
+                DaoFactory.getDaoFactory().createPatientDAO().read(selectedItem.getPid());
+            } catch (SQLException exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        ArrayList PatientAndTreatments = new ArrayList<>();
+
+        PatientAndTreatments.add(selectedItem);
+
+        selectedPatient = selectedItem.getPid();
+
+        AllTreatmentController allTreatmentController = new AllTreatmentController();
+        allTreatmentController.GetTretmentsByPid(selectedPatient);
+
+        PatientAndTreatments.add(allTreatmentController.GetTretmentsByPid(selectedPatient));
+
+        System.out.println(PatientAndTreatments);
+        return PatientAndTreatments;
+
+    }
+
+    public void handleExportPDF()
+    {
+        List data = GetExportData();
+
+    }
+
+
+    public void handleExportCSV()
+    {
+        List data = GetExportData();
+
+
+    }
+
 
     /**
      * Clears all contents from all <code>TextField</code>s.

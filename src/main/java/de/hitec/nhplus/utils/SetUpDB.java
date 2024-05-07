@@ -40,9 +40,9 @@ public class SetUpDB {
      */
     public static void wipeDb(Connection connection) {
         try (Statement statement = connection.createStatement()) {
-            statement.execute("DROP TABLE patient");
-            statement.execute("DROP TABLE caretaker");
-            statement.execute("DROP TABLE treatment");
+            statement.execute("DROP TABLE IF EXISTS patient");
+            statement.execute("DROP TABLE IF EXISTS caretaker");
+            statement.execute("DROP TABLE IF EXISTS treatment");
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
