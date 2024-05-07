@@ -32,4 +32,14 @@ public class MainWindowController {
             exception.printStackTrace();
         }
     }
+
+    @FXML
+    public void handleShowLogData(ActionEvent actionEvent) {
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/de/hitec/nhplus/LogData.fxml"));
+        try {
+            mainBorderPane.setCenter(loader.load());
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
 }
