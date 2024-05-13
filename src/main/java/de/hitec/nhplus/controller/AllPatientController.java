@@ -2,6 +2,7 @@ package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
+import de.hitec.nhplus.model.Person;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -18,6 +19,8 @@ import de.hitec.nhplus.utils.DateConverter;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 
 /**
@@ -47,7 +50,10 @@ public class AllPatientController {
     private TableColumn<Patient, String> columnRoomNumber;
 
     @FXML
-    private Button buttonDelete;
+    private TableColumn<Patient, String> columnTimeUpdated;
+
+    @FXML
+    private Button buttonLock;
 
     @FXML
     private Button buttonAdd;
@@ -78,6 +84,9 @@ public class AllPatientController {
     public void initialize() {
         this.readAllAndShowInTableView();
 
+        // Check for deletion-time + delete if necessary
+        this.patients.forEach(Person::checkForDeletion);
+
         this.columnId.setCellValueFactory(new PropertyValueFactory<>("pid"));
 
         // CellValueFactory to show property values in TableView
@@ -97,14 +106,17 @@ public class AllPatientController {
         this.columnRoomNumber.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));
         this.columnRoomNumber.setCellFactory(TextFieldTableCell.forTableColumn());
 
+        this.columnTimeUpdated.setCellValueFactory(new PropertyValueFactory<>("timeUpdated"));
+        this.columnTimeUpdated.setCellFactory(TextFieldTableCell.forTableColumn());
+
         //Anzeigen der Daten
         this.tableView.setItems(this.patients);
 
-        this.buttonDelete.setDisable(true);
+        this.buttonLock.setDisable(true);
         this.tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Patient>() {
             @Override
             public void changed(ObservableValue<? extends Patient> observableValue, Patient oldPatient, Patient newPatient) {;
-                AllPatientController.this.buttonDelete.setDisable(newPatient == null);
+                AllPatientController.this.buttonLock.setDisable(newPatient == null);
             }
         });
 
@@ -206,15 +218,14 @@ public class AllPatientController {
      * <code>TableView</code>.
      */
     @FXML
-    public void handleDelete() {
+    public void handleLock() {
         Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
-            try {
-                DaoFactory.getDaoFactory().createPatientDAO().deleteById(selectedItem.getPid());
-                this.tableView.getItems().remove(selectedItem);
-            } catch (SQLException exception) {
-                exception.printStackTrace();
-            }
+            selectedItem.setLocked(true);
+
+            // LOCKING IN TABLE MISSING
+            
+            List<Patient> lockedPatients = this.tableView.getItems().stream().filter(Person::isLocked).toList();
         }
     }
 
@@ -231,8 +242,9 @@ public class AllPatientController {
         LocalDate date = DateConverter.convertStringToLocalDate(birthday);
         String careLevel = this.textFieldCareLevel.getText();
         String roomNumber = this.textFieldRoomNumber.getText();
+        LocalDateTime timeUpdated = LocalDateTime.now();
         try {
-            this.dao.create(new Patient(firstName, surname, date, careLevel, roomNumber));
+            this.dao.create(new Patient(firstName, surname, date, careLevel, roomNumber, timeUpdated, false));
         } catch (SQLException exception) {
             exception.printStackTrace();
         }

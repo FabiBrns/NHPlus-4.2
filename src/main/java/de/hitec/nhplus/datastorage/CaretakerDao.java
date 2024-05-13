@@ -1,11 +1,14 @@
 package de.hitec.nhplus.datastorage;
 
 import de.hitec.nhplus.model.Caretaker;
+import de.hitec.nhplus.utils.DateConverter;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 /**
@@ -33,12 +36,13 @@ public class CaretakerDao extends DaoImp<Caretaker> {
     protected PreparedStatement getCreateStatement(Caretaker caretaker) {
         PreparedStatement preparedStatement = null;
         try {
-            final String SQL = "INSERT INTO caretaker (firstname, surname, phonenumber) " +
-                               "VALUES (?, ?, ?)";
+            final String SQL = "INSERT INTO caretaker (firstname, surname, phonenumber, timeUpdated) " +
+                               "VALUES (?, ?, ?, ?)";
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, caretaker.getFirstName());
             preparedStatement.setString(2, caretaker.getSurname());
             preparedStatement.setString(3, caretaker.getPhoneNumber());
+            preparedStatement.setString(4, caretaker.getTimeUpdated());
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -76,7 +80,8 @@ public class CaretakerDao extends DaoImp<Caretaker> {
                 result.getInt(1),
                 result.getString(2),
                 result.getString(3),
-                result.getString(4));
+                result.getString(4),
+                DateConverter.convertStringToLocalDateTime(result.getString(5)));
     }
 
     /**
@@ -107,9 +112,13 @@ public class CaretakerDao extends DaoImp<Caretaker> {
     protected ArrayList<Caretaker> getListFromResultSet(ResultSet result) throws SQLException {
         ArrayList<Caretaker> list = new ArrayList<>();
         while (result.next()) {
-            Caretaker caretaker = new Caretaker(result.getInt(1), result.getString(2),
+            LocalDateTime timeUpdated = DateConverter.convertStringToLocalDateTime(result.getString(5));
+            Caretaker caretaker = new Caretaker(
+                    result.getInt(1),
+                    result.getString(2),
                     result.getString(3),
-                    result.getString(4));
+                    result.getString(4),
+                    timeUpdated);
             list.add(caretaker);
         }
         return list;
@@ -130,13 +139,15 @@ public class CaretakerDao extends DaoImp<Caretaker> {
                     "UPDATE caretaker SET " +
                     "firstname = ?, " +
                     "surname = ?, " +
-                    "phonenumber = ? " +
+                    "phonenumber = ?, " +
+                    "timeUpdated = ? " +
                     "WHERE cid = ?";
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, caretaker.getFirstName());
             preparedStatement.setString(2, caretaker.getSurname());
             preparedStatement.setString(3, caretaker.getPhoneNumber());
-            preparedStatement.setLong(4, caretaker.getCid());
+            preparedStatement.setString(4, caretaker.getTimeUpdated());
+            preparedStatement.setLong(5, caretaker.getCid());
         } catch (SQLException exception) {
             exception.printStackTrace();
         }

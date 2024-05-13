@@ -4,6 +4,7 @@ import de.hitec.nhplus.datastorage.CaretakerDao;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
 import de.hitec.nhplus.model.Caretaker;
+import de.hitec.nhplus.model.Patient;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -17,6 +18,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 
 
 /**
@@ -38,6 +40,9 @@ public class AllCaretakerController {
 
     @FXML
     private TableColumn<Caretaker, String> columnPhoneNumber;
+
+    @FXML
+    private TableColumn<Patient, String> columnTimeUpdated;
 
     @FXML
     private Button buttonLock;
@@ -77,6 +82,9 @@ public class AllCaretakerController {
 
         this.columnPhoneNumber.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
         this.columnPhoneNumber.setCellFactory(TextFieldTableCell.forTableColumn());
+
+        this.columnTimeUpdated.setCellValueFactory(new PropertyValueFactory<>("timeUpdated"));
+        this.columnTimeUpdated.setCellFactory(TextFieldTableCell.forTableColumn());
 
         //Anzeigen der Daten
         this.tableView.setItems(this.caretakers);
@@ -183,8 +191,9 @@ public class AllCaretakerController {
         String surname = this.textFieldSurname.getText();
         String firstName = this.textFieldFirstName.getText();
         String phoneNumber = this.textFieldPhoneNumber.getText();
+        LocalDateTime timeUpdated = LocalDateTime.now();
         try {
-            this.dao.create(new Caretaker(firstName, surname, phoneNumber));
+            this.dao.create(new Caretaker(firstName, surname, phoneNumber, timeUpdated));
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
