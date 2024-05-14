@@ -16,11 +16,15 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import de.hitec.nhplus.model.Patient;
 import de.hitec.nhplus.utils.DateConverter;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
 
 /**
  * The <code>AllPatientController</code> contains the entire logic of the patient view. It determines which data is displayed and how to react to events.
@@ -242,8 +246,12 @@ public class AllPatientController extends AllTreatmentController{
         clearTextfields();
     }
 
+    /**
+     *This methode gets the data from the Patient and his Treatments and returns them as an ArrayList.
+     */
     public List GetExportData()
     {
+        //Get the Patient data from the selected Patient
         long selectedPatient = 0;
         Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
@@ -256,32 +264,228 @@ public class AllPatientController extends AllTreatmentController{
 
         ArrayList PatientAndTreatments = new ArrayList<>();
 
+        //Adding the Patient to the ArrayList
         PatientAndTreatments.add(selectedItem);
 
+        //saving the Patient ID
         selectedPatient = selectedItem.getPid();
 
+        //
         AllTreatmentController allTreatmentController = new AllTreatmentController();
-        allTreatmentController.GetTretmentsByPid(selectedPatient);
+        //allTreatmentController.GetTretmentsByPid(selectedPatient);
 
+        //Adding the Treatments to the ArrayLIst
         PatientAndTreatments.add(allTreatmentController.GetTretmentsByPid(selectedPatient));
 
-        System.out.println(PatientAndTreatments);
-        return PatientAndTreatments;
 
+        //System.out.println(PatientAndTreatments);
+        return PatientAndTreatments;
     }
 
     public void handleExportPDF()
     {
         List data = GetExportData();
-
+        //System.out.println(data);
     }
 
 
     public void handleExportCSV()
     {
         List data = GetExportData();
+        //System.out.println(data);
+
+        boolean patient= false;
+        boolean treatments = false;
+        int count_treatments = 0;
+        int count = 0;
+
+        //get number of treatments
+        for(int i = 0; i < data.size(); i++)
+        {
+            if(data.get(i).toString().contains("Behandlung"))
+            {
+                var data_1 = data.get(i);
+                String[] data_ = data_1.toString().replace(" ","").replace("[","").replace("]","").split("\n");
+
+                for(int s = 0; s < data_.length; s++)
+                {
+                    if(data_[s].contains("Behandlung"))
+                    {
+                        count_treatments++;
+                    }
+                }
+            }
+        }
+
+        String[][][] treatments_ = new String[count_treatments][2][7];
+        String[][] patient_ = new String[2][6];
+
+        for(int i = 0; i < data.size(); i++)
+        {
+            //System.out.println(data.get(i));
+
+            //Check if Patient or Treatments data
+            if(data.get(i).toString().contains("Patient"))
+            {
+                patient = true;
+                treatments = false;
+                count_treatments = 0;
+            }
+            if(data.get(i).toString().contains("Behandlung"))
+            {
+                count = 0;
+                count_treatments++;
+                patient = false;
+                treatments = true;
+            }
+
+            if(patient == true)
+            {
+                var data_1 = data.get(i);
+                String[] data_ = data_1.toString().replace("[","").replace("]","").split("\n");
+
+                for(int s = 0; s < data_.length; s++)
+                {
+                    String[] split_ = data_[s].split(":");
+
+                    //System.out.println(split_.length);
+
+                    if(split_.length == 2)
+                    {
+                        patient_[0][count] = split_[0];
+                        patient_[1][count] = split_[1];
+                        System.out.println(2);
+                        count++;
+                    } else if (split_.length== 3) {
+                        System.out.println(3);
+                        patient_[0][count] = split_[0];
+                        patient_[1][count] = split_[2];
+                        count++;
+                    }
+                }
+            }
+
+            if(treatments == true)
+            {
+                var data_1 = data.get(i);
+                String[] data_ = data_1.toString().replace("[","").replace("]","").replace(".\n"," ").split("\n");
+                int t = -1;
+
+                    for(int s = 0; s < data_.length; s++)
+                    {
+                        String[] split_ = data_[s].split(":");
+
+                        if(split_[0].equals("Behandlung"))
+                        {
+                            t++;
+                            count = 0;
+                        }
+
+                        if(split_.length == 2)
+                        {
+                            if(t >= 1)
+                            {
+                                treatments_[t][1][count] = split_[1];
+                            }
+                            else
+                            {
+                                treatments_[t][0][count] = split_[0];
+                                treatments_[t][1][count] = split_[1];
+                            }
+
+                            count++;
+                        }
+                        else if (split_.length== 3)
+                        {
+                            if(t >= 1)
+                            {
+                                treatments_[t][1][count] = split_[2];
+                            }
+                            else
+                            {
+                                treatments_[t][0][count] = split_[0];
+                                treatments_[t][1][count] = split_[2];
+                            }
+
+                            count++;
+                        }
 
 
+                    }
+            }
+        }
+
+        //Get save Path
+        String user_path = System.getProperty("user.home");
+
+        //Generate file path
+        File file = new File(user_path + "\\Downloads\\Patienten daten_" +patient_[1][2] + " " + patient_[1][1]);
+        if (!file.exists()){
+            file.mkdirs();
+        }
+
+        String csv = "";
+
+        //String for patient
+        for(int i = 0; i <= 1; i++)
+        {
+            for(int y = 0; y <= 5; y++)
+            {
+                csv += patient_[i][y];
+                if(y+1 != 6)
+                {
+                    csv += ";";
+                }
+                else
+                {
+                    csv += "\n";
+                }
+            }
+        }
+
+        //Patient daten werden in die Patient CSV datei geschrieben und die Patient.csv wird gespeichert
+        try {
+            FileWriter fw = new FileWriter(file.getPath() + "\\Patient.csv");
+            fw.write(csv);
+            fw.flush();
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        csv = "";
+        //String for Treatments
+        for(int t = 0; t < treatments_.length; t++)
+        {
+            for(int i = 0; i <= 1; i++)
+            {
+                for(int y = 0; y <= 6; y++)
+                {
+                    if(treatments_[t][i][y] != null)
+                    {
+                        csv += treatments_[t][i][y];
+                        if(y+1 != 7)
+                        {
+                            csv += ";";
+                        }
+                        else
+                        {
+                            csv += "\n";
+                        }
+                    }
+                }
+            }
+        }
+
+        //Treatments daten werden in die Treatments CSV datei geschrieben und die Treatments.csv wird gespeichert
+        try {
+            FileWriter fw = new FileWriter(file.getPath() + "\\Treatments.csv");
+            fw.write(csv);
+            fw.flush();
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
