@@ -182,10 +182,14 @@ public class TreatmentDao extends DaoImp<Treatment> {
     private PreparedStatement getReadAllTreatmentsOfOnePatientByPid(long pid) {
         PreparedStatement preparedStatement = null;
         List<Long> lockedPIDs = getAllLockedPIDs();
+        List<Long> lockedCIDs = getAllLockedCIDs();
         try {
-            final String SQL = "SELECT * FROM treatment WHERE pid NOT IN " + lockedPIDs.toString()
+            final String SQL = "SELECT * FROM treatment WHERE pid LIKE " + pid + " AND pid NOT IN " + lockedPIDs.toString()
                     .replace("[", "(")
-                    .replace("]", ")");
+                    .replace("]", ")") +
+                               "AND cid NOT IN " + lockedCIDs.toString()
+                                       .replace("[", "(")
+                                       .replace("]", ")");
             preparedStatement = this.connection.prepareStatement(SQL);
 
             if (preparedStatement.getFetchSize() != 0) {
