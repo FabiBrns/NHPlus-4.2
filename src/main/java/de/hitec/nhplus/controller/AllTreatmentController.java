@@ -134,17 +134,6 @@ public class AllTreatmentController {
     }
 
     @FXML
-    public void handleLock() {
-        int index = this.tableView.getSelectionModel().getSelectedIndex();
-        Treatment t = this.treatments.remove(index);
-        try {
-            dao.update(t);
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
-    }
-
-    @FXML
     public void handleNewTreatment() {
         try {
             String selectedPatient = this.comboBoxPatientSelection.getSelectionModel().getSelectedItem();
