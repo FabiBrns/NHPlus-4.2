@@ -24,8 +24,8 @@ public class Caretaker extends Person {
      * @param firstName First name of the patient.
      * @param surname   Last name of the patient.
      */
-    public Caretaker(String firstName, String surname, String phoneNumber, LocalDateTime timeUpdated) {
-        super(firstName, surname, timeUpdated);
+    public Caretaker(String firstName, String surname, String phoneNumber, LocalDateTime timeUpdated, boolean locked) {
+        super(firstName, surname, timeUpdated, locked);
         this.phoneNumber = new SimpleStringProperty(phoneNumber);
     }
 
@@ -38,8 +38,8 @@ public class Caretaker extends Person {
      * @param surname     Last name of the caretaker.
      * @param phoneNumber phoneNumber of the caretaker
      */
-    public Caretaker(long cid, String firstName, String surname, String phoneNumber, LocalDateTime timeUpdated) {
-        super(firstName, surname, timeUpdated);
+    public Caretaker(long cid, String firstName, String surname, String phoneNumber, LocalDateTime timeUpdated, boolean locked) {
+        super(firstName, surname, timeUpdated, locked);
         this.cid = new SimpleLongProperty(cid);
         this.phoneNumber = new SimpleStringProperty(phoneNumber);
     }

@@ -11,14 +11,17 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.List;
 
 public class AllTreatmentController {
 
@@ -49,13 +52,10 @@ public class AllTreatmentController {
     @FXML
     private ComboBox<String> comboBoxPatientSelection;
 
-    @FXML
-    private Button buttonDelete;
-
     private final ObservableList<Treatment> treatments = FXCollections.observableArrayList();
     private TreatmentDao dao;
     private final ObservableList<String> patientSelection = FXCollections.observableArrayList();
-    private ArrayList<Patient> patientList;
+    private List<Patient> patientList;
 
     public void initialize() {
         readAllAndShowInTableView();
@@ -71,21 +71,15 @@ public class AllTreatmentController {
         this.columnDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
         this.tableView.setItems(this.treatments);
 
-        // Disabling the button to delete treatments as long, as no treatment was selected.
-        this.buttonDelete.setDisable(true);
-        this.tableView.getSelectionModel().selectedItemProperty().addListener(
-                (observableValue, oldTreatment, newTreatment) ->
-                        AllTreatmentController.this.buttonDelete.setDisable(newTreatment == null));
-
         this.createComboBoxData();
     }
 
     public void readAllAndShowInTableView() {
         this.treatments.clear();
-        comboBoxPatientSelection.getSelectionModel().select(0);
         this.dao = DaoFactory.getDaoFactory().createTreatmentDao();
         try {
             this.treatments.addAll(dao.readAll());
+            comboBoxPatientSelection.getSelectionModel().select(0);
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -94,7 +88,9 @@ public class AllTreatmentController {
     private void createComboBoxData() {
         PatientDao dao = DaoFactory.getDaoFactory().createPatientDAO();
         try {
-            patientList = (ArrayList<Patient>) dao.readAll();
+            patientList = dao.readAll().stream()
+                    .filter(p -> !p.isLocked())
+                    .toList();
             this.patientSelection.add("alle");
             for (Patient patient : patientList) {
                 this.patientSelection.add(patient.getSurname());
@@ -138,12 +134,11 @@ public class AllTreatmentController {
     }
 
     @FXML
-    public void handleDelete() {
+    public void handleLock() {
         int index = this.tableView.getSelectionModel().getSelectedIndex();
         Treatment t = this.treatments.remove(index);
-        TreatmentDao dao = DaoFactory.getDaoFactory().createTreatmentDao();
         try {
-            dao.deleteById(t.getTid());
+            dao.update(t);
         } catch (SQLException exception) {
             exception.printStackTrace();
         }

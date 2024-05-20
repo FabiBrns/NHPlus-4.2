@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
@@ -36,13 +35,15 @@ public class CaretakerDao extends DaoImp<Caretaker> {
     protected PreparedStatement getCreateStatement(Caretaker caretaker) {
         PreparedStatement preparedStatement = null;
         try {
-            final String SQL = "INSERT INTO caretaker (firstname, surname, phonenumber, timeUpdated) " +
-                               "VALUES (?, ?, ?, ?)";
+            final String SQL = "INSERT INTO caretaker (firstname, surname, phonenumber, timeUpdated, locked) " +
+                               "VALUES (?, ?, ?, ?, ?)";
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, caretaker.getFirstName());
             preparedStatement.setString(2, caretaker.getSurname());
             preparedStatement.setString(3, caretaker.getPhoneNumber());
             preparedStatement.setString(4, caretaker.getTimeUpdated());
+            preparedStatement.setBoolean(5, caretaker.isLocked());
+
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -81,7 +82,8 @@ public class CaretakerDao extends DaoImp<Caretaker> {
                 result.getString(2),
                 result.getString(3),
                 result.getString(4),
-                DateConverter.convertStringToLocalDateTime(result.getString(5)));
+                DateConverter.convertStringToLocalDateTime(result.getString(5)),
+                result.getBoolean(6));
     }
 
     /**
@@ -118,7 +120,8 @@ public class CaretakerDao extends DaoImp<Caretaker> {
                     result.getString(2),
                     result.getString(3),
                     result.getString(4),
-                    timeUpdated);
+                    timeUpdated,
+                    result.getBoolean(6));
             list.add(caretaker);
         }
         return list;
@@ -140,14 +143,17 @@ public class CaretakerDao extends DaoImp<Caretaker> {
                     "firstname = ?, " +
                     "surname = ?, " +
                     "phonenumber = ?, " +
-                    "timeUpdated = ? " +
-                    "WHERE cid = ?";
+                    "timeUpdated = ?, " +
+                    "locked = ? " +
+                    "WHERE cid = ? AND locked = false";
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, caretaker.getFirstName());
             preparedStatement.setString(2, caretaker.getSurname());
             preparedStatement.setString(3, caretaker.getPhoneNumber());
             preparedStatement.setString(4, caretaker.getTimeUpdated());
-            preparedStatement.setLong(5, caretaker.getCid());
+            preparedStatement.setBoolean(5, caretaker.isLocked());
+            preparedStatement.setLong(6, caretaker.getCid());
+
         } catch (SQLException exception) {
             exception.printStackTrace();
         }

@@ -2,7 +2,9 @@ package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
+import de.hitec.nhplus.model.Patient;
 import de.hitec.nhplus.model.Person;
+import de.hitec.nhplus.utils.DateConverter;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -14,8 +16,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
-import de.hitec.nhplus.model.Patient;
-import de.hitec.nhplus.utils.DateConverter;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -115,7 +115,8 @@ public class AllPatientController {
         this.buttonLock.setDisable(true);
         this.tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Patient>() {
             @Override
-            public void changed(ObservableValue<? extends Patient> observableValue, Patient oldPatient, Patient newPatient) {;
+            public void changed(ObservableValue<? extends Patient> observableValue, Patient oldPatient, Patient newPatient) {
+                ;
                 AllPatientController.this.buttonLock.setDisable(newPatient == null);
             }
         });
@@ -138,6 +139,7 @@ public class AllPatientController {
     @FXML
     public void handleOnEditFirstname(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setFirstName(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
     }
 
@@ -149,6 +151,7 @@ public class AllPatientController {
     @FXML
     public void handleOnEditSurname(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setSurname(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
     }
 
@@ -160,6 +163,7 @@ public class AllPatientController {
     @FXML
     public void handleOnEditDateOfBirth(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setDateOfBirth(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
     }
 
@@ -171,6 +175,7 @@ public class AllPatientController {
     @FXML
     public void handleOnEditCareLevel(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setCareLevel(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
     }
 
@@ -180,9 +185,14 @@ public class AllPatientController {
      * @param event Event including the changed object and the change.
      */
     @FXML
-    public void handleOnEditRoomNumber(TableColumn.CellEditEvent<Patient, String> event){
+    public void handleOnEditRoomNumber(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setRoomNumber(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
+    }
+
+    private void updateTimeUpdated(TableColumn.CellEditEvent<Patient, String> event) {
+        event.getRowValue().setTimeUpdated(LocalDateTime.now());
     }
 
     /**
@@ -206,7 +216,11 @@ public class AllPatientController {
         this.patients.clear();
         this.dao = DaoFactory.getDaoFactory().createPatientDAO();
         try {
-            this.patients.addAll(this.dao.readAll());
+            List<Patient> allPatients = this.dao.readAll().stream()
+                    .filter(c -> !c.isLocked())
+                    .toList();
+
+            this.patients.addAll(allPatients);
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -221,11 +235,13 @@ public class AllPatientController {
     public void handleLock() {
         Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
-            selectedItem.setLocked(true);
-
-            // LOCKING IN TABLE MISSING
-            
-            List<Patient> lockedPatients = this.tableView.getItems().stream().filter(Person::isLocked).toList();
+            try {
+                selectedItem.setLocked(true);
+                this.tableView.getItems().remove(selectedItem);
+                dao.update(selectedItem);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -273,7 +289,7 @@ public class AllPatientController {
         }
 
         return !this.textFieldFirstName.getText().isBlank() && !this.textFieldSurname.getText().isBlank() &&
-                !this.textFieldDateOfBirth.getText().isBlank() && !this.textFieldCareLevel.getText().isBlank() &&
-                !this.textFieldRoomNumber.getText().isBlank();
+               !this.textFieldDateOfBirth.getText().isBlank() && !this.textFieldCareLevel.getText().isBlank() &&
+               !this.textFieldRoomNumber.getText().isBlank();
     }
 }

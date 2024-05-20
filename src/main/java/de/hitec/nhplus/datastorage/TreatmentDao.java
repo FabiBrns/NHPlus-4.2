@@ -1,5 +1,8 @@
 package de.hitec.nhplus.datastorage;
 
+import de.hitec.nhplus.model.Caretaker;
+import de.hitec.nhplus.model.Patient;
+import de.hitec.nhplus.model.Person;
 import de.hitec.nhplus.model.Treatment;
 import de.hitec.nhplus.utils.DateConverter;
 
@@ -95,13 +98,50 @@ public class TreatmentDao extends DaoImp<Treatment> {
     @Override
     protected PreparedStatement getReadAllStatement() {
         PreparedStatement statement = null;
+        List<Long> lockedPIDs = getAllLockedPIDs();
+        List<Long> lockedCIDs = getAllLockedCIDs();
+
+        // had to change the braces of the lists because of SQLite syntax
         try {
-            final String SQL = "SELECT * FROM treatment";
+            final String SQL = "SELECT * FROM treatment WHERE cid NOT IN " + lockedCIDs.toString()
+                    .replace("[", "(")
+                    .replace("]", ")") +
+                               "AND pid NOT IN " + lockedPIDs.toString()
+                                       .replace("[", "(")
+                                       .replace("]", ")");
             statement = this.connection.prepareStatement(SQL);
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
         return statement;
+    }
+
+    private List<Long> getAllLockedCIDs() {
+        CaretakerDao cDao = DaoFactory.getDaoFactory().createCaretakerDAO();
+        List<Long> lockedPatientCIDs = null;
+        try {
+            lockedPatientCIDs = cDao.readAll().stream()
+                    .filter(Person::isLocked)
+                    .map(Caretaker::getCid)
+                    .toList();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lockedPatientCIDs;
+    }
+
+    private List<Long> getAllLockedPIDs() {
+        PatientDao pDao = DaoFactory.getDaoFactory().createPatientDAO();
+        List<Long> lockedPatientCIDs = null;
+        try {
+            lockedPatientCIDs = pDao.readAll().stream()
+                    .filter(Person::isLocked)
+                    .map(Patient::getPid)
+                    .toList();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lockedPatientCIDs;
     }
 
     /**
@@ -119,8 +159,14 @@ public class TreatmentDao extends DaoImp<Treatment> {
             LocalDate date = DateConverter.convertStringToLocalDate(result.getString(4));
             LocalTime begin = DateConverter.convertStringToLocalTime(result.getString(5));
             LocalTime end = DateConverter.convertStringToLocalTime(result.getString(6));
-            Treatment treatment = new Treatment(result.getLong(1), result.getLong(2),
-                    result.getLong(3), date, begin, end, result.getString(7),
+            Treatment treatment = new Treatment(
+                    result.getLong(1),
+                    result.getLong(2),
+                    result.getLong(3),
+                    date,
+                    begin,
+                    end,
+                    result.getString(7),
                     result.getString(8));
             list.add(treatment);
         }
@@ -135,10 +181,16 @@ public class TreatmentDao extends DaoImp<Treatment> {
      */
     private PreparedStatement getReadAllTreatmentsOfOnePatientByPid(long pid) {
         PreparedStatement preparedStatement = null;
+        List<Long> lockedPIDs = getAllLockedPIDs();
         try {
-            final String SQL = "SELECT * FROM treatment WHERE pid = ?";
+            final String SQL = "SELECT * FROM treatment WHERE pid NOT IN " + lockedPIDs.toString()
+                    .replace("[", "(")
+                    .replace("]", ")");
             preparedStatement = this.connection.prepareStatement(SQL);
-            preparedStatement.setLong(1, pid);
+
+            if (preparedStatement.getFetchSize() != 0) {
+                preparedStatement.setLong(1, pid);
+            }
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -147,8 +199,11 @@ public class TreatmentDao extends DaoImp<Treatment> {
 
     private PreparedStatement getReadAllTreatmentsOfOneCaretakerByCid(long cid) {
         PreparedStatement preparedStatement = null;
+        List<Long> lockedCIDs = getAllLockedCIDs();
         try {
-            final String SQL = "SELECT * FROM treatment WHERE cid = ?";
+            final String SQL = "SELECT * FROM treatment WHERE cid NOT IN " + lockedCIDs.toString()
+                    .replace("[", "(")
+                    .replace("]", ")");
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setLong(1, cid);
         } catch (SQLException exception) {
@@ -182,9 +237,11 @@ public class TreatmentDao extends DaoImp<Treatment> {
      * @param treatment Treatment object to update.
      * @return <code>PreparedStatement</code> to update the given treatment.
      */
+
     @Override
     protected PreparedStatement getUpdateStatement(Treatment treatment) {
         PreparedStatement preparedStatement = null;
+
         try {
             final String SQL =
                     "UPDATE treatment SET " +
@@ -208,6 +265,7 @@ public class TreatmentDao extends DaoImp<Treatment> {
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
+
         return preparedStatement;
     }
 

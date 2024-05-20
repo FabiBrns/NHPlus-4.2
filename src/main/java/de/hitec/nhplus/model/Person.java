@@ -55,8 +55,8 @@ public abstract class Person {
         return timeUpdated;
     }
 
-    public void setTimeUpdated(String timeUpdated) {
-        this.timeUpdated.set(timeUpdated);
+    public void setTimeUpdated(LocalDateTime timeUpdated) {
+        this.timeUpdated.set(DateConverter.convertLocalDateTimeToString(timeUpdated));
     }
 
     public boolean isLocked() {
@@ -83,8 +83,7 @@ public abstract class Person {
                 } catch (SQLException e) {
                     System.out.println(e.getMessage());
                 }
-            }
-            if (this instanceof Caretaker) {
+            } else if (this instanceof Caretaker) {
                 try {
                     DaoFactory.getDaoFactory().createCaretakerDAO().deleteById(((Caretaker) this).getCid());
                 } catch (SQLException e) {

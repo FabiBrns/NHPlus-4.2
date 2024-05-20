@@ -36,8 +36,8 @@ public class PatientDao extends DaoImp<Patient> {
     protected PreparedStatement getCreateStatement(Patient patient) {
         PreparedStatement preparedStatement = null;
         try {
-            final String SQL = "INSERT INTO patient (firstname, surname, dateOfBirth, carelevel, roomnumber, timeUpdated) " +
-                               "VALUES (?, ?, ?, ?, ?, ?)";
+            final String SQL = "INSERT INTO patient (firstname, surname, dateOfBirth, carelevel, roomnumber, timeUpdated, locked) " +
+                               "VALUES (?, ?, ?, ?, ?, ?, ?)";
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, patient.getFirstName());
             preparedStatement.setString(2, patient.getSurname());
@@ -45,6 +45,7 @@ public class PatientDao extends DaoImp<Patient> {
             preparedStatement.setString(4, patient.getCareLevel());
             preparedStatement.setString(5, patient.getRoomNumber());
             preparedStatement.setString(6, patient.getTimeUpdated());
+            preparedStatement.setBoolean(7, patient.isLocked());
 
         } catch (SQLException exception) {
             exception.printStackTrace();
@@ -77,6 +78,7 @@ public class PatientDao extends DaoImp<Patient> {
      * @param result ResultSet with a single row. Columns will be mapped to an object of class <code>Patient</code>.
      * @return Object of class <code>Patient</code> with the data from the resultSet.
      */
+
     @Override
     protected Patient getInstanceFromResultSet(ResultSet result) throws SQLException {
         return new Patient(
@@ -86,7 +88,8 @@ public class PatientDao extends DaoImp<Patient> {
                 DateConverter.convertStringToLocalDate(result.getString(4)),
                 result.getString(5),
                 result.getString(6),
-                DateConverter.convertStringToLocalDateTime(result.getString(7)));
+                DateConverter.convertStringToLocalDateTime(result.getString(7)),
+                result.getBoolean(8));
     }
 
     /**
@@ -119,12 +122,15 @@ public class PatientDao extends DaoImp<Patient> {
         while (result.next()) {
             LocalDate date = DateConverter.convertStringToLocalDate(result.getString(4));
             LocalDateTime timeUpdated = DateConverter.convertStringToLocalDateTime(result.getString(7));
-            Patient patient = new Patient(result.getInt(1), result.getString(2),
+            Patient patient = new Patient(
+                    result.getInt(1),
+                    result.getString(2),
                     result.getString(3),
                     date,
                     result.getString(5),
                     result.getString(6),
-                    timeUpdated);
+                    timeUpdated,
+                    result.getBoolean(8));
             list.add(patient);
         }
         return list;
@@ -149,8 +155,8 @@ public class PatientDao extends DaoImp<Patient> {
                     "carelevel = ?, " +
                     "roomnumber = ?, " +
                     "timeUpdated = ?, " +
-                    "pid = ? " +
-                    "WHERE pid = ?";
+                    "locked = ? " +
+                    "WHERE pid = ? AND locked = false";
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, patient.getFirstName());
             preparedStatement.setString(2, patient.getSurname());
@@ -158,7 +164,9 @@ public class PatientDao extends DaoImp<Patient> {
             preparedStatement.setString(4, patient.getCareLevel());
             preparedStatement.setString(5, patient.getRoomNumber());
             preparedStatement.setString(6, patient.getTimeUpdated());
-            preparedStatement.setLong(7, patient.getPid());
+            preparedStatement.setBoolean(7, patient.isLocked());
+            preparedStatement.setLong(8, patient.getPid());
+
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
