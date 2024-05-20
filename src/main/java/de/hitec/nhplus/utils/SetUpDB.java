@@ -4,6 +4,7 @@ import de.hitec.nhplus.datastorage.*;
 import de.hitec.nhplus.model.Caretaker;
 import de.hitec.nhplus.model.Patient;
 import de.hitec.nhplus.model.Treatment;
+import de.hitec.nhplus.model.User;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -26,9 +27,11 @@ public class SetUpDB {
     public static void setUpDb() {
         Connection connection = ConnectionBuilder.getConnection();
         SetUpDB.wipeDb(connection);
+        SetUpDB.setUpTableUser(connection);
         SetUpDB.setUpTablePatient(connection);
         SetUpDB.setUpTableCaretaker(connection);
         SetUpDB.setUpTableTreatment(connection);
+        SetUpDB.setUpUsers();
         SetUpDB.setUpPatients();
         SetUpDB.setUpCaretakers();
         SetUpDB.setUpTreatments();
@@ -39,9 +42,19 @@ public class SetUpDB {
      */
     public static void wipeDb(Connection connection) {
         try (Statement statement = connection.createStatement()) {
+            statement.execute("DROP TABLE user");
             statement.execute("DROP TABLE patient");
             statement.execute("DROP TABLE caretaker");
             statement.execute("DROP TABLE treatment");
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private static void setUpTableUser(Connection connection) {
+        final String SQL = "CREATE TABLE IF NOT EXISTS user (uid INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, password TEXT NOT NULL);";
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(SQL);
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -69,6 +82,16 @@ public class SetUpDB {
         final String SQL = "CREATE TABLE IF NOT EXISTS treatment (tid INTEGER PRIMARY KEY AUTOINCREMENT, pid INTEGER NOT NULL, cid INTEGER NOT NULL, treatment_date TEXT NOT NULL, begin TEXT NOT NULL, end TEXT NOT NULL, description TEXT NOT NULL, remark TEXT NOT NULL, FOREIGN KEY (pid) REFERENCES patient (pid) ON DELETE CASCADE FOREIGN KEY (cid) REFERENCES caretaker (cid) ON DELETE CASCADE);";
         try (Statement statement = connection.createStatement()) {
             statement.execute(SQL);
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private static void setUpUsers() {
+        try {
+            UserDao dao = DaoFactory.getDaoFactory().createUserDAO();
+            dao.create(new User("Fabian", "1234"));
+            dao.create(new User("Jannik", "1234"));
         } catch (SQLException exception) {
             exception.printStackTrace();
         }

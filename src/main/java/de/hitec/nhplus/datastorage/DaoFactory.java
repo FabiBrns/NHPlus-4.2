@@ -25,4 +25,8 @@ public class DaoFactory {
     public CaretakerDao createCaretakerDAO() {
         return new CaretakerDao(ConnectionBuilder.getConnection());
     }
+
+    public UserDao createUserDAO() {
+        return new UserDao(ConnectionBuilder.getConnection());
+    }
 }
