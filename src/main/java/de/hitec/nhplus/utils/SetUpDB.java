@@ -9,8 +9,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static de.hitec.nhplus.utils.DateConverter.convertStringToLocalDate;
-import static de.hitec.nhplus.utils.DateConverter.convertStringToLocalTime;
+import static de.hitec.nhplus.utils.DateConverter.*;
 
 /**
  * Call static class provides to static methods to set up and wipe the database. It uses the class ConnectionBuilder
@@ -49,7 +48,7 @@ public class SetUpDB {
     }
 
     private static void setUpTablePatient(Connection connection) {
-        final String SQL = "CREATE TABLE IF NOT EXISTS patient (pid INTEGER PRIMARY KEY AUTOINCREMENT, firstname TEXT NOT NULL, surname TEXT NOT NULL, dateOfBirth TEXT NOT NULL, carelevel TEXT NOT NULL, roomnumber TEXT NOT NULL);";
+        final String SQL = "CREATE TABLE IF NOT EXISTS patient (pid INTEGER PRIMARY KEY AUTOINCREMENT, firstname TEXT NOT NULL, surname TEXT NOT NULL, dateOfBirth TEXT NOT NULL, carelevel TEXT NOT NULL, roomnumber TEXT NOT NULL, timeUpdated TEXT NOT NULL, locked INTEGER NOT NULL);";
         try (Statement statement = connection.createStatement()) {
             statement.execute(SQL);
         } catch (SQLException exception) {
@@ -58,7 +57,7 @@ public class SetUpDB {
     }
 
     private static void setUpTableCaretaker(Connection connection) {
-        final String SQL = "CREATE TABLE IF NOT EXISTS caretaker (cid INTEGER PRIMARY KEY AUTOINCREMENT, firstname TEXT NOT NULL, surname TEXT NOT NULL, phonenumber TEXT NOT NULL);";
+        final String SQL = "CREATE TABLE IF NOT EXISTS caretaker (cid INTEGER PRIMARY KEY AUTOINCREMENT, firstname TEXT NOT NULL, surname TEXT NOT NULL, phonenumber TEXT NOT NULL, timeUpdated TEXT NOT NULL, locked INTEGER NOT NULL);";
         try (Statement statement = connection.createStatement()) {
             statement.execute(SQL);
         } catch (SQLException exception) {
@@ -78,12 +77,12 @@ public class SetUpDB {
     private static void setUpPatients() {
         try {
             PatientDao dao = DaoFactory.getDaoFactory().createPatientDAO();
-            dao.create(new Patient("Seppl", "Herberger", convertStringToLocalDate("1945-12-01"), "4", "202"));
-            dao.create(new Patient("Martina", "Gerdsen", convertStringToLocalDate("1954-08-12"), "5", "010"));
-            dao.create(new Patient("Gertrud", "Franzen", convertStringToLocalDate("1949-04-16"), "3", "002"));
-            dao.create(new Patient("Ahmet", "Yilmaz", convertStringToLocalDate("1941-02-22"), "3", "013"));
-            dao.create(new Patient("Hans", "Neumann", convertStringToLocalDate("1955-12-12"), "2", "001"));
-            dao.create(new Patient("Elisabeth", "Müller", convertStringToLocalDate("1958-03-07"), "5", "110"));
+            dao.create(new Patient("Seppl", "Herberger", convertStringToLocalDate("1945-12-01"), "4", "202", convertStringToLocalDateTime("1990-02-22 11:01:59"), false));
+            dao.create(new Patient("Martina", "Gerdsen", convertStringToLocalDate("1954-08-12"), "5", "010", convertStringToLocalDateTime("2012-12-04 15:12:43"), false));
+            dao.create(new Patient("Gertrud", "Franzen", convertStringToLocalDate("1949-04-16"), "3", "002", convertStringToLocalDateTime("2007-05-09 09:47:52"), false));
+            dao.create(new Patient("Ahmet", "Yilmaz", convertStringToLocalDate("1941-02-22"), "3", "013", convertStringToLocalDateTime("2013-02-26 17:08:22"), false));
+            dao.create(new Patient("Hans", "Neumann", convertStringToLocalDate("1955-12-12"), "2", "001", convertStringToLocalDateTime("2004-01-20 19:06:54"), false));
+            dao.create(new Patient("Elisabeth", "Müller", convertStringToLocalDate("1958-03-07"), "5", "110", convertStringToLocalDateTime("2018-08-21 03:34:25"), false));
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -92,8 +91,8 @@ public class SetUpDB {
     private static void setUpCaretakers() {
         try {
             CaretakerDao dao = DaoFactory.getDaoFactory().createCaretakerDAO();
-            dao.create(new Caretaker("Fabian", "Bruens", "+4915757227043"));
-            dao.create(new Caretaker("Abdul Latif", "Islambouli", "+49234567891"));
+            dao.create(new Caretaker("Fabian", "Bruens", "+49123456789", convertStringToLocalDateTime("2003-02-22 11:01:59"), false));
+            dao.create(new Caretaker("Abdul Latif", "Islambouli", "+49234567891", convertStringToLocalDateTime("2024-01-22 01:01:01"), false));
         } catch (SQLException exception) {
             exception.printStackTrace();
         }

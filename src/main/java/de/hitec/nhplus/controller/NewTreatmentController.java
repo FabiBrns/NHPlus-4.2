@@ -2,6 +2,7 @@ package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.datastorage.CaretakerDao;
 import de.hitec.nhplus.datastorage.DaoFactory;
+import de.hitec.nhplus.datastorage.PatientDao;
 import de.hitec.nhplus.datastorage.TreatmentDao;
 import de.hitec.nhplus.model.Caretaker;
 import de.hitec.nhplus.model.Patient;
@@ -17,6 +18,7 @@ import javafx.util.StringConverter;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
@@ -123,15 +125,26 @@ public class NewTreatmentController {
         String description = textFieldDescription.getText();
         String remarks = textAreaRemarks.getText();
         Treatment treatment = new Treatment(patient.getPid(), caretaker.getCid(), date, begin, end, description, remarks);
+
+        // update timestamps till deletion when new treatment created
+        patient.setTimeUpdated(LocalDateTime.now());
+        caretaker.setTimeUpdated(LocalDateTime.now());
+
         createTreatment(treatment);
+
+
         controller.readAllAndShowInTableView();
         stage.close();
     }
 
     private void createTreatment(Treatment treatment) {
-        TreatmentDao dao = DaoFactory.getDaoFactory().createTreatmentDao();
+        TreatmentDao tDao = DaoFactory.getDaoFactory().createTreatmentDao();
+        PatientDao pDao = DaoFactory.getDaoFactory().createPatientDAO();
+        CaretakerDao cDao = DaoFactory.getDaoFactory().createCaretakerDAO();
         try {
-            dao.create(treatment);
+            tDao.create(treatment);
+            pDao.update(patient);
+            cDao.update(caretaker);
         } catch (SQLException exception) {
             exception.printStackTrace();
         }

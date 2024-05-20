@@ -2,6 +2,9 @@ package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
+import de.hitec.nhplus.model.Patient;
+import de.hitec.nhplus.model.Person;
+import de.hitec.nhplus.utils.DateConverter;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -13,11 +16,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
-import de.hitec.nhplus.model.Patient;
-import de.hitec.nhplus.utils.DateConverter;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 
 /**
@@ -47,7 +50,10 @@ public class AllPatientController {
     private TableColumn<Patient, String> columnRoomNumber;
 
     @FXML
-    private Button buttonDelete;
+    private TableColumn<Patient, String> columnTimeUpdated;
+
+    @FXML
+    private Button buttonLock;
 
     @FXML
     private Button buttonAdd;
@@ -78,6 +84,9 @@ public class AllPatientController {
     public void initialize() {
         this.readAllAndShowInTableView();
 
+        // Check for deletion-time + delete if necessary
+        this.patients.forEach(Person::checkForDeletion);
+
         this.columnId.setCellValueFactory(new PropertyValueFactory<>("pid"));
 
         // CellValueFactory to show property values in TableView
@@ -97,14 +106,18 @@ public class AllPatientController {
         this.columnRoomNumber.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));
         this.columnRoomNumber.setCellFactory(TextFieldTableCell.forTableColumn());
 
+        this.columnTimeUpdated.setCellValueFactory(new PropertyValueFactory<>("timeUpdated"));
+        this.columnTimeUpdated.setCellFactory(TextFieldTableCell.forTableColumn());
+
         //Anzeigen der Daten
         this.tableView.setItems(this.patients);
 
-        this.buttonDelete.setDisable(true);
+        this.buttonLock.setDisable(true);
         this.tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Patient>() {
             @Override
-            public void changed(ObservableValue<? extends Patient> observableValue, Patient oldPatient, Patient newPatient) {;
-                AllPatientController.this.buttonDelete.setDisable(newPatient == null);
+            public void changed(ObservableValue<? extends Patient> observableValue, Patient oldPatient, Patient newPatient) {
+                ;
+                AllPatientController.this.buttonLock.setDisable(newPatient == null);
             }
         });
 
@@ -126,6 +139,7 @@ public class AllPatientController {
     @FXML
     public void handleOnEditFirstname(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setFirstName(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
     }
 
@@ -137,6 +151,7 @@ public class AllPatientController {
     @FXML
     public void handleOnEditSurname(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setSurname(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
     }
 
@@ -148,6 +163,7 @@ public class AllPatientController {
     @FXML
     public void handleOnEditDateOfBirth(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setDateOfBirth(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
     }
 
@@ -159,6 +175,7 @@ public class AllPatientController {
     @FXML
     public void handleOnEditCareLevel(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setCareLevel(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
     }
 
@@ -168,9 +185,14 @@ public class AllPatientController {
      * @param event Event including the changed object and the change.
      */
     @FXML
-    public void handleOnEditRoomNumber(TableColumn.CellEditEvent<Patient, String> event){
+    public void handleOnEditRoomNumber(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setRoomNumber(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
+    }
+
+    private void updateTimeUpdated(TableColumn.CellEditEvent<Patient, String> event) {
+        event.getRowValue().setTimeUpdated(LocalDateTime.now());
     }
 
     /**
@@ -194,7 +216,11 @@ public class AllPatientController {
         this.patients.clear();
         this.dao = DaoFactory.getDaoFactory().createPatientDAO();
         try {
-            this.patients.addAll(this.dao.readAll());
+            List<Patient> allPatients = this.dao.readAll().stream()
+                    .filter(c -> !c.isLocked())
+                    .toList();
+
+            this.patients.addAll(allPatients);
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -206,14 +232,15 @@ public class AllPatientController {
      * <code>TableView</code>.
      */
     @FXML
-    public void handleDelete() {
+    public void handleLock() {
         Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
             try {
-                DaoFactory.getDaoFactory().createPatientDAO().deleteById(selectedItem.getPid());
+                selectedItem.setLocked(true);
                 this.tableView.getItems().remove(selectedItem);
-            } catch (SQLException exception) {
-                exception.printStackTrace();
+                dao.update(selectedItem);
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -231,8 +258,9 @@ public class AllPatientController {
         LocalDate date = DateConverter.convertStringToLocalDate(birthday);
         String careLevel = this.textFieldCareLevel.getText();
         String roomNumber = this.textFieldRoomNumber.getText();
+        LocalDateTime timeUpdated = LocalDateTime.now();
         try {
-            this.dao.create(new Patient(firstName, surname, date, careLevel, roomNumber));
+            this.dao.create(new Patient(firstName, surname, date, careLevel, roomNumber, timeUpdated, false));
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -261,7 +289,7 @@ public class AllPatientController {
         }
 
         return !this.textFieldFirstName.getText().isBlank() && !this.textFieldSurname.getText().isBlank() &&
-                !this.textFieldDateOfBirth.getText().isBlank() && !this.textFieldCareLevel.getText().isBlank() &&
-                !this.textFieldRoomNumber.getText().isBlank();
+               !this.textFieldDateOfBirth.getText().isBlank() && !this.textFieldCareLevel.getText().isBlank() &&
+               !this.textFieldRoomNumber.getText().isBlank();
     }
 }

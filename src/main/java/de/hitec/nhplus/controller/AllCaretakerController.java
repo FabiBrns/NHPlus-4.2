@@ -4,8 +4,9 @@ import de.hitec.nhplus.datastorage.CaretakerDao;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
 import de.hitec.nhplus.model.Caretaker;
+import de.hitec.nhplus.model.Patient;
+import de.hitec.nhplus.model.Person;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -17,6 +18,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.List;
 
 
 /**
@@ -38,6 +41,9 @@ public class AllCaretakerController {
 
     @FXML
     private TableColumn<Caretaker, String> columnPhoneNumber;
+
+    @FXML
+    private TableColumn<Patient, String> columnTimeUpdated;
 
     @FXML
     private Button buttonLock;
@@ -65,6 +71,9 @@ public class AllCaretakerController {
     public void initialize() {
         this.readAllAndShowInTableView();
 
+        // Check for deletion-time + delete if necessary
+        this.caretakers.forEach(Person::checkForDeletion);
+
         this.columnId.setCellValueFactory(new PropertyValueFactory<>("cid"));
 
         // CellValueFactory to show property values in TableView
@@ -78,15 +87,15 @@ public class AllCaretakerController {
         this.columnPhoneNumber.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
         this.columnPhoneNumber.setCellFactory(TextFieldTableCell.forTableColumn());
 
+        this.columnTimeUpdated.setCellValueFactory(new PropertyValueFactory<>("timeUpdated"));
+        this.columnTimeUpdated.setCellFactory(TextFieldTableCell.forTableColumn());
+
         //Anzeigen der Daten
         this.tableView.setItems(this.caretakers);
 
-        this.buttonLock.setDisable(true); // LOCK NOT DELETE
-        this.tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Caretaker>() {
-            @Override
-            public void changed(ObservableValue<? extends Caretaker> observableValue, Caretaker oldCaretaker, Caretaker newCaretaker) {
-                AllCaretakerController.this.buttonLock.setDisable(newCaretaker == null /* LOCK NOT DELETE!! */);
-            }
+        this.buttonLock.setDisable(true);
+        this.tableView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldCaretaker, newCaretaker) -> {
+            AllCaretakerController.this.buttonLock.setDisable(newCaretaker == null);
         });
 
         this.buttonAdd.setDisable(true);
@@ -103,6 +112,7 @@ public class AllCaretakerController {
     @FXML
     public void handleOnEditFirstname(TableColumn.CellEditEvent<Caretaker, String> event) {
         event.getRowValue().setFirstName(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
     }
 
@@ -114,6 +124,7 @@ public class AllCaretakerController {
     @FXML
     public void handleOnEditSurname(TableColumn.CellEditEvent<Caretaker, String> event) {
         event.getRowValue().setSurname(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
     }
 
@@ -125,7 +136,12 @@ public class AllCaretakerController {
     @FXML
     public void handleOnEditPhoneNumber(TableColumn.CellEditEvent<Caretaker, String> event) {
         event.getRowValue().setPhoneNumber(event.getNewValue());
+        this.updateTimeUpdated(event);
         this.doUpdate(event);
+    }
+
+    private void updateTimeUpdated(TableColumn.CellEditEvent<Caretaker, String> event) {
+        event.getRowValue().setTimeUpdated(LocalDateTime.now());
     }
 
     /**
@@ -149,7 +165,11 @@ public class AllCaretakerController {
         this.caretakers.clear();
         this.dao = DaoFactory.getDaoFactory().createCaretakerDAO();
         try {
-            this.caretakers.addAll(this.dao.readAll());
+            List<Caretaker> allUnlockedCaretakers = this.dao.readAll().stream()
+                    .filter(c -> !c.isLocked())
+                    .toList();
+
+            this.caretakers.addAll(allUnlockedCaretakers);
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -165,10 +185,11 @@ public class AllCaretakerController {
         Caretaker selectedItem = this.tableView.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
             try {
-                DaoFactory.getDaoFactory().createCaretakerDAO().deleteById(selectedItem.getCid());
+                selectedItem.setLocked(true);
                 this.tableView.getItems().remove(selectedItem);
-            } catch (SQLException exception) {
-                exception.printStackTrace();
+                dao.update(selectedItem);
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -183,8 +204,11 @@ public class AllCaretakerController {
         String surname = this.textFieldSurname.getText();
         String firstName = this.textFieldFirstName.getText();
         String phoneNumber = this.textFieldPhoneNumber.getText();
+        LocalDateTime timeUpdated = LocalDateTime.now();
+        // false on default
+        boolean locked = false;
         try {
-            this.dao.create(new Caretaker(firstName, surname, phoneNumber));
+            this.dao.create(new Caretaker(firstName, surname, phoneNumber, timeUpdated, locked));
         } catch (SQLException exception) {
             exception.printStackTrace();
         }

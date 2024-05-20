@@ -13,16 +13,18 @@
           <TableColumn fx:id="columnSurname" onEditCommit="#handleOnEditSurname" maxWidth="7500.0" minWidth="20.0" prefWidth="100.0" text="Nachname" />
           <TableColumn fx:id="columnFirstName" onEditCommit="#handleOnEditFirstname" maxWidth="7500.0" prefWidth="75.0" text="Vorname" />
             <TableColumn fx:id="columnPhoneNumber" onEditCommit="#handleOnEditPhoneNumber" maxWidth="7500.0" prefWidth="75.0" text="Telefon" />
+            <TableColumn fx:id="columnTimeUpdated" maxWidth="1200.0" minWidth="5.0" prefWidth="5.0" text="zul. bearbeitet" />
         </columns>
          <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
          </columnResizePolicy>
       </TableView>
+
       <HBox layoutX="420.0" layoutY="450.0" spacing="10.0" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0">
          <children>
             <TextField fx:id="textFieldSurname" prefHeight="26.0" prefWidth="220.0" promptText="Nachname" />
             <TextField fx:id="textFieldFirstName" prefHeight="26.0" prefWidth="220.0" promptText="Vorname" />
-            <TextField fx:id="textFieldPhoneNumber" prefWidth="160.0" promptText="Telefonnummer" />
+            <TextField fx:id="textFieldPhoneNumber" prefHeight="26.0" prefWidth="160.0" promptText="Telefonnummer" />
             <Button fx:id="buttonAdd" onAction="#handleAdd" mnemonicParsing="false" prefWidth="90.0" text="Hinzufügen" />
             <Button fx:id="buttonLock" onAction="#handleLock" mnemonicParsing="false" prefWidth="90.0" text="Sperren" />
          </children>

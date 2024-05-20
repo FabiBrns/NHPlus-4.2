@@ -3,6 +3,7 @@ package de.hitec.nhplus.model;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,8 +24,8 @@ public class Caretaker extends Person {
      * @param firstName First name of the patient.
      * @param surname   Last name of the patient.
      */
-    public Caretaker(String firstName, String surname, String phoneNumber) {
-        super(firstName, surname);
+    public Caretaker(String firstName, String surname, String phoneNumber, LocalDateTime timeUpdated, boolean locked) {
+        super(firstName, surname, timeUpdated, locked);
         this.phoneNumber = new SimpleStringProperty(phoneNumber);
     }
 
@@ -37,8 +38,8 @@ public class Caretaker extends Person {
      * @param surname     Last name of the caretaker.
      * @param phoneNumber phoneNumber of the caretaker
      */
-    public Caretaker(long cid, String firstName, String surname, String phoneNumber) {
-        super(firstName, surname);
+    public Caretaker(long cid, String firstName, String surname, String phoneNumber, LocalDateTime timeUpdated, boolean locked) {
+        super(firstName, surname, timeUpdated, locked);
         this.cid = new SimpleLongProperty(cid);
         this.phoneNumber = new SimpleStringProperty(phoneNumber);
     }
