@@ -81,9 +81,9 @@ public class UserDao extends DaoImp<User> {
     }
 
     /**
-     * Generates a <code>PreparedStatement</code> to query all patients.
+     * Generates a <code>PreparedStatement</code> to query all users.
      *
-     * @return <code>PreparedStatement</code> to query all patients.
+     * @return <code>PreparedStatement</code> to query all users.
      */
     @Override
     protected PreparedStatement getReadAllStatement() {
@@ -98,7 +98,7 @@ public class UserDao extends DaoImp<User> {
     }
 
     /**
-     * Maps a <code>ResultSet</code> of all patients to an <code>ArrayList</code> of <code>User</code> objects.
+     * Maps a <code>ResultSet</code> of all users to an <code>ArrayList</code> of <code>User</code> objects.
      *
      * @param result ResultSet with all rows. The Columns will be mapped to objects of class <code>User</code>.
      * @return <code>ArrayList</code> with objects of class <code>User</code> of all rows in the
@@ -136,7 +136,7 @@ public class UserDao extends DaoImp<User> {
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, user.getUsername());
             preparedStatement.setString(2, user.getPassword());
-            preparedStatement.setLong(3, user.getUID());
+            preparedStatement.setLong(3, user.getUid());
 
         } catch (SQLException exception) {
             exception.printStackTrace();

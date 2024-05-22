@@ -17,7 +17,7 @@ import java.util.ArrayList;
 public class CaretakerDao extends DaoImp<Caretaker> {
 
     /**
-     * The constructor initiates an object of <code>PatientDao</code> and passes the connection to its super class.
+     * The constructor initiates an object of <code>CaretakerDao</code> and passes the connection to its super class.
      *
      * @param connection Object of <code>Connection</code> to execute the SQL-statements.
      */
@@ -104,7 +104,7 @@ public class CaretakerDao extends DaoImp<Caretaker> {
     }
 
     /**
-     * Maps a <code>ResultSet</code> of all patients to an <code>ArrayList</code> of <code>Caretaker</code> objects.
+     * Maps a <code>ResultSet</code> of all caretakers to an <code>ArrayList</code> of <code>Caretaker</code> objects.
      *
      * @param result ResultSet with all rows. The Columns will be mapped to objects of class <code>Caretaker</code>.
      * @return <code>ArrayList</code> with objects of class <code>Caretaker</code> of all rows in the

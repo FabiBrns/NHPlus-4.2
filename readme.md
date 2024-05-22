@@ -1,12 +1,49 @@
-Fabian:
-Userstory 1 - DONE
-Userstory 4 - DONE
-Userstory 2 - IN PROGRESS
+NHPlus
 
-Jannik:
-Userstory 3 - DONE
-Userstory 7 - ON HOLD
-Userstory 5 & 6 - IN PROGRESS
+## Zugangsdaten
+Nutzername: Fabian \
+Passwort: 1234
 
-Missing:
-Javadocs :(
+## Zusatzfunktionen
+- Datenexport als CSV
+- Logging von Nutzerinteraktionen
+
+## Testfälle
+### Pflegermodul
+|         Testfall         | Bestanden |
+|:------------------------:|:---------:|
+|  Alle Pfleger anzeigen   |     ✅     |
+|   Pflegerdaten ändern    |     ✅     |
+|     Pfleger anlegen      |     ✅     |
+
+### Loginmodul
+|      Testfall       | Bestanden |
+|:-------------------:|:---------:|
+|      Einloggen      |     ✅     |
+
+### Patientenmodul
+|      Testfall       | Bestanden |
+|:-------------------:|:---------:|
+|      Feld Vermögenstand wird nicht angezeigt      |     ✅     |
+
+### Datenschutz
+|      Testfall       | Bestanden |
+|:-------------------:|:---------:|
+|      Automische Löschung von Daten     |     ✅     |
+|Sperrung von Daten|✅|
+
+### PDF-Export
+|       Testfall       | Bestanden |
+|:--------------------:|:---------:|
+| ToPDF Funktionalität |     ❎     |
+
+### CSV-Export
+|       Testfall       | Bestanden |
+|:--------------------:|:---------:|
+| ToCSV Funktionalität |     ❎      |
+
+### Loggingfunktion
+|                    Testfall                     | Bestanden |
+|:-----------------------------------------------:|:---------:|
+| Erfolgreiches Speichern von Nutzerinteraktionen |     ❎     |
+|       Darstellung der gespeicherten Logs        |     ❎      |

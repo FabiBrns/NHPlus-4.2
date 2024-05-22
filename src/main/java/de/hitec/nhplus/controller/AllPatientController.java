@@ -116,7 +116,6 @@ public class AllPatientController {
         this.tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Patient>() {
             @Override
             public void changed(ObservableValue<? extends Patient> observableValue, Patient oldPatient, Patient newPatient) {
-                ;
                 AllPatientController.this.buttonLock.setDisable(newPatient == null);
             }
         });
@@ -191,6 +190,11 @@ public class AllPatientController {
         this.doUpdate(event);
     }
 
+    /**
+     * sets the parameter lastUpdated of the current patient to LocalDateTime.now().
+     *
+     * @param event Event including the changed object and the change.
+     */
     private void updateTimeUpdated(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setTimeUpdated(LocalDateTime.now());
     }
@@ -227,8 +231,8 @@ public class AllPatientController {
     }
 
     /**
-     * This method handles events fired by the button to delete patients. It calls {@link PatientDao} to delete the
-     * patient from the database and removes the object from the list, which is the data source of the
+     * This method handles events fired by the button to lock patients. It calls {@link PatientDao} to set the
+     * parameter "locked" in the database on true and removes the object from the list, which is the data source of the
      * <code>TableView</code>.
      */
     @FXML

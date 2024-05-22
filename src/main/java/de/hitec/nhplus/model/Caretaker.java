@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Patients live in a NURSING home and are treated by nurses.
+ * Caretakers work in a NURSING home and are treating patients.
  */
 public class Caretaker extends Person {
     private SimpleLongProperty cid;
@@ -18,11 +18,11 @@ public class Caretaker extends Person {
     private final List<Treatment> allTreatments = new ArrayList<>();
 
     /**
-     * Constructor to initiate an object of class <code>Patient</code> with the given parameter. Use this constructor
-     * to initiate objects, which are not persisted yet, because it will not have a patient id (cid).
+     * Constructor to initiate an object of class <code>Caretaker</code> with the given parameter. Use this constructor
+     * to initiate objects, which are not persisted yet, because it will not have a caretaker id (cid).
      *
-     * @param firstName First name of the patient.
-     * @param surname   Last name of the patient.
+     * @param firstName First name of the caretaker.
+     * @param surname   Last name of the caretaker.
      */
     public Caretaker(String firstName, String surname, String phoneNumber, LocalDateTime timeUpdated, boolean locked) {
         super(firstName, surname, timeUpdated, locked);
@@ -30,13 +30,13 @@ public class Caretaker extends Person {
     }
 
     /**
-     * Constructor to initiate an object of class <code>Patient</code> with the given parameter. Use this constructor
-     * to initiate objects, which are already persisted and have a patient id (cid).
+     * Constructor to initiate an object of class <code>Caretaker</code> with the given parameter. Use this constructor
+     * to initiate objects, which are already persisted and have a caretaker id (cid).
      *
      * @param cid         caretaker id.
      * @param firstName   First name of the caretaker.
      * @param surname     Last name of the caretaker.
-     * @param phoneNumber phoneNumber of the caretaker
+     * @param phoneNumber phoneNumber of the caretaker.
      */
     public Caretaker(long cid, String firstName, String surname, String phoneNumber, LocalDateTime timeUpdated, boolean locked) {
         super(firstName, surname, timeUpdated, locked);

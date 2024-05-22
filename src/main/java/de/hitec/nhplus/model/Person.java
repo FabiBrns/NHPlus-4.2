@@ -2,6 +2,7 @@ package de.hitec.nhplus.model;
 
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.utils.DateConverter;
+import de.hitec.nhplus.utils.DefaultConstants;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 
@@ -76,7 +77,7 @@ public abstract class Person {
         LocalDateTime dateTimeLastUpdated = DateConverter
                 .convertStringToLocalDateTime(String.valueOf(this.timeUpdated.getValue()));
 
-        if (dateTimeLastUpdated.until(dateTimeNow, ChronoUnit.YEARS) >= 30) {
+        if (dateTimeLastUpdated.until(dateTimeNow, ChronoUnit.YEARS) >= DefaultConstants.TIME_UNTIL_DELETION_OF_DATA_IN_YEARS) {
             if (this instanceof Patient) {
                 try {
                     DaoFactory.getDaoFactory().createPatientDAO().deleteById(((Patient) this).getPid());

@@ -2,7 +2,6 @@ package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.datastorage.CaretakerDao;
 import de.hitec.nhplus.datastorage.DaoFactory;
-import de.hitec.nhplus.datastorage.PatientDao;
 import de.hitec.nhplus.model.Caretaker;
 import de.hitec.nhplus.model.Patient;
 import de.hitec.nhplus.model.Person;
@@ -23,7 +22,7 @@ import java.util.List;
 
 
 /**
- * The <code>AllPatientController</code> contains the entire logic of the patient view. It determines which data is displayed and how to react to events.
+ * The <code>AllCaretakerController</code> contains the entire logic of the caretaker view. It determines which data is displayed and how to react to events.
  */
 public class AllCaretakerController {
 
@@ -140,12 +139,17 @@ public class AllCaretakerController {
         this.doUpdate(event);
     }
 
+    /**
+     * sets the parameter lastUpdated of the current caretaker to LocalDateTime.now().
+     *
+     * @param event Event including the changed object and the change.
+     */
     private void updateTimeUpdated(TableColumn.CellEditEvent<Caretaker, String> event) {
         event.getRowValue().setTimeUpdated(LocalDateTime.now());
     }
 
     /**
-     * Updates a patient by calling the method <code>update()</code> of {@link PatientDao}.
+     * Updates a caretaker by calling the method <code>update()</code> of {@link CaretakerDao}.
      *
      * @param event Event including the changed object and the change.
      */
@@ -158,8 +162,8 @@ public class AllCaretakerController {
     }
 
     /**
-     * Reloads all patients to the table by clearing the list of all patients and filling it again by all persisted
-     * patients, delivered by {@link PatientDao}.
+     * Reloads all caretakers to the table by clearing the list of all caretakers and filling it again by all persisted, not locked
+     * caretakers, delivered by {@link CaretakerDao}.
      */
     private void readAllAndShowInTableView() {
         this.caretakers.clear();
@@ -176,8 +180,8 @@ public class AllCaretakerController {
     }
 
     /**
-     * This method handles events fired by the button to delete patients. It calls {@link PatientDao} to delete the
-     * patient from the database and removes the object from the list, which is the data source of the
+     * This method handles events fired by the button to lock caretakers. It calls {@link CaretakerDao} to set the
+     * parameter "locked" in the db on true and removes the object from the list, which is the data source of the
      * <code>TableView</code>.
      */
     @FXML
@@ -195,9 +199,9 @@ public class AllCaretakerController {
     }
 
     /**
-     * This method handles the events fired by the button to add a patient. It collects the data from the
+     * This method handles the events fired by the button to add a caretaker. It collects the data from the
      * <code>TextField</code>s, creates an object of class <code>Caretaker</code> of it and passes the object to
-     * {@link PatientDao} to persist the data.
+     * {@link CaretakerDao} to persist the data.
      */
     @FXML
     public void handleAdd() {
@@ -205,7 +209,7 @@ public class AllCaretakerController {
         String firstName = this.textFieldFirstName.getText();
         String phoneNumber = this.textFieldPhoneNumber.getText();
         LocalDateTime timeUpdated = LocalDateTime.now();
-        // false on default
+        // locked = false on default
         boolean locked = false;
         try {
             this.dao.create(new Caretaker(firstName, surname, phoneNumber, timeUpdated, locked));
