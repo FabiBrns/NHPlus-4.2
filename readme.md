@@ -47,3 +47,7 @@ Passwort: 1234
 |:-----------------------------------------------:|:---------:|
 | Erfolgreiches Speichern von Nutzerinteraktionen |     ❎     |
 |       Darstellung der gespeicherten Logs        |     ❎      |
+
+Branch/Userstory 5, 6, 7 ist von Jannik.
+
+Userstory 3 (Vermögensstand) ist zusammen gemacht worden
